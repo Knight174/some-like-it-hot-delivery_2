@@ -4,13 +4,16 @@
   "description": "",
   "main": "ask-delivery.js",
   "scripts": {
-    "package": "aws cloudformation package --template-file template.yaml --s3-bucket some-like-it-hot-book --output-template-file output.yaml",
-    "deploy": "aws cloudformation deploy --template-file output.yaml --stack-name some-like-it-hot-book --capabilities CAPABILITY_IAM"
+    "package": "aws cloudformation package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket some-like-it-hot-book",
+    "deploy": "aws cloudformation deploy --template-file packaged.yaml --stack-name some-like-it-hot-book --capabilities CAPABILITY_IAM",
+    "delete": "aws cloudformation delete-stack --stack-name some-like-it-hot-book"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "minimal-request-promise": "^1.5.0"
+    "aws-sdk": "^2.1577.0",
+    "minimal-request-promise": "^1.5.0",
+    "uuid": "^9.0.1"
   }
 }

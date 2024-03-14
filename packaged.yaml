@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  AskDelivery:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ask-delivery.handler
+      Runtime: nodejs20.x
+      Policies:
+      - Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - states:*
+          Resource:
+            Ref: DeliveryProcessor
+        - Effect: Allow
+          Action:
+          - dynamodb:PutItem
+          Resource: '*'
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: DeliveriesTable
+          DELIVERY_STEP_FUNCTION:
+            Ref: DeliveryProcessor
+      Events:
+        AskDeliveryApi:
+          Type: Api
+          Properties:
+            Path: /delivery
+            Method: POST
+            RestApiId:
+              Ref: AskDeliveryApi
+      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+  GetDeliveries:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-deliveries.handler
+      Runtime: nodejs20.x
+      Policies:
+      - Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:Scan
+          Resource: '*'
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: DeliveriesTable
+      Events:
+        AskDeliveryApi:
+          Type: Api
+          Properties:
+            Path: /delivery
+            Method: GET
+            RestApiId:
+              Ref: AskDeliveryApi
+      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+  GetDelivery:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-delivery.handler
+      Runtime: nodejs20.x
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: DeliveriesTable
+      Policies:
+      - Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          Resource: '*'
+      Events:
+        AskDeliveryApi:
+          Type: Api
+          Properties:
+            Path: /delivery/{orderId}
+            Method: GET
+            RestApiId:
+              Ref: AskDeliveryApi
+      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+  DeleteDelivery:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: delete-delivery.handler
+      Runtime: nodejs20.x
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: DeliveriesTable
+      Policies:
+      - Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:DeleteItem
+          Resource: '*'
+      Events:
+        DeleteDeliveryApi:
+          Type: Api
+          Properties:
+            Path: /delivery/{orderId}
+            Method: DELETE
+            RestApiId:
+              Ref: AskDeliveryApi
+      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+  DeliveriesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: deliveryId
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  DeliveryProcessor:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: DeliveryMachine
+      DefinitionString:
+        Fn::Sub: "{\n  \"Comment\": \"The Some Like It Hot Delivery State Machine\"\
+          ,\n  \"StartAt\": \"ProcessDelivery\",\n  \"Version\": \"1.0\",\n  \"States\"\
+          : {\n    \"ProcessDelivery\": {\n      \"Type\": \"Wait\",\n      \"Seconds\"\
+          : 5,\n      \"Next\": \"NotifyDelivery\"\n    },\n    \"NotifyDelivery\"\
+          : {\n      \"Type\": \"Task\",\n      \"Resource\": \"${NotifyDeliveries.Arn}\"\
+          ,\n      \"End\": true\n    }\n  }\n}\n"
+      RoleArn:
+        Fn::GetAtt:
+        - DeliveryStatesExecutionRole
+        - Arn
+  DeliveryStatesExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - Fn::Sub: states.${AWS::Region}.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: StatesExecutionPolicy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - lambda:InvokeFunction
+            Resource: '*'
+  NotifyDeliveries:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: notify-delivery.handler
+      Runtime: nodejs20.x
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: DeliveriesTable
+      Policies:
+      - Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:UpdateItem
+          - dynamodb:PutItem
+          Resource: '*'
+      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+  AskDeliveryApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowOrigin: "'*'"
+      DefinitionBody:
+        swagger: 2.0
+        info:
+          title:
+            Ref: AWS::StackName
+        paths:
+          /delivery:
+            post:
+              responses: {}
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AskDelivery.Arn}/invocations
+            get:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses: {}
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDeliveries.Arn}/invocations
+          /delivery/{orderId}:
+            get:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              parameters:
+              - in: path
+                name: orderId
+                type: string
+                required: true
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDelivery.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+            delete:
+              produces:
+              - application/json
+              parameters:
+              - in: path
+                name: orderId
+                type: string
+                required: true
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteDelivery.Arn}/invocations
+                httpMethod: POST
+                type: aws_proxy
+Outputs:
+  ApiUrl:
+    Description: The URL of the AskDeliveryApi endpoint
+    Value:
+      Fn::Sub: https://${AskDeliveryApi}.execute-api.${AWS::Region}.amazonaws.com/${AskDeliveryApi.Stage}/delivery

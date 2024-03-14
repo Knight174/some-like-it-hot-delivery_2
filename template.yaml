@@ -6,7 +6,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: ask-delivery.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs20.x
       Policies:
         - Version: 2012-10-17
           Statement:
@@ -18,7 +18,7 @@ Resources:
               Action:
                 - dynamodb:PutItem
               Resource: '*'
-      Environment: 
+      Environment:
         Variables:
           TABLE_NAME: !Ref DeliveriesTable
           DELIVERY_STEP_FUNCTION: !Ref DeliveryProcessor
@@ -33,7 +33,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-deliveries.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs20.x
       Policies:
         - Version: 2012-10-17
           Statement:
@@ -41,7 +41,7 @@ Resources:
               Action:
                 - dynamodb:Scan
               Resource: '*'
-      Environment: 
+      Environment:
         Variables:
           TABLE_NAME: !Ref DeliveriesTable
       Events:
@@ -55,8 +55,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-delivery.handler
-      Runtime: nodejs8.10
-      Environment: 
+      Runtime: nodejs20.x
+      Environment:
         Variables:
           TABLE_NAME: !Ref DeliveriesTable
       Policies:
@@ -77,8 +77,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: delete-delivery.handler
-      Runtime: nodejs8.10
-      Environment: 
+      Runtime: nodejs20.x
+      Environment:
         Variables:
           TABLE_NAME: !Ref DeliveriesTable
       Policies:
@@ -126,7 +126,7 @@ Resources:
             }
           }
         }
-      RoleArn: !GetAtt [ DeliveryStatesExecutionRole, Arn ]
+      RoleArn: !GetAtt [DeliveryStatesExecutionRole, Arn]
   DeliveryStatesExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -152,8 +152,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: notify-delivery.handler
-      Runtime: nodejs8.10
-      Environment: 
+      Runtime: nodejs20.x
+      Environment:
         Variables:
           TABLE_NAME: !Ref DeliveriesTable
       Policies:
@@ -183,51 +183,51 @@ Resources:
                 httpMethod: POST
                 type: aws_proxy
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AskDelivery.Arn}/invocations"
+                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AskDelivery.Arn}/invocations'
             get:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               responses: {}
               x-amazon-apigateway-integration:
                 httpMethod: POST
                 type: aws_proxy
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDeliveries.Arn}/invocations"
+                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDeliveries.Arn}/invocations'
           /delivery/{orderId}:
             get:
               consumes:
-              - application/json
+                - application/json
               produces:
-              - application/json
+                - application/json
               parameters:
-              - in: path
-                name: orderId
-                type: string
-                required: true
+                - in: path
+                  name: orderId
+                  type: string
+                  required: true
               responses: {}
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDelivery.Arn}/invocations"
+                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetDelivery.Arn}/invocations'
                 httpMethod: POST
                 type: aws_proxy
             delete:
               produces:
-              - application/json
+                - application/json
               parameters:
-              - in: path
-                name: orderId
-                type: string
-                required: true
+                - in: path
+                  name: orderId
+                  type: string
+                  required: true
               responses: {}
               x-amazon-apigateway-integration:
                 uri:
-                  Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteDelivery.Arn}/invocations"
+                  Fn::Sub: 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteDelivery.Arn}/invocations'
                 httpMethod: POST
                 type: aws_proxy
-                
+
 Outputs:
   ApiUrl:
-    Description: The URL of the AskDeliveryApi endpoint 
-    Value: !Sub "https://${AskDeliveryApi}.execute-api.${AWS::Region}.amazonaws.com/${AskDeliveryApi.Stage}/delivery"
+    Description: The URL of the AskDeliveryApi endpoint
+    Value: !Sub 'https://${AskDeliveryApi}.execute-api.${AWS::Region}.amazonaws.com/${AskDeliveryApi.Stage}/delivery'
