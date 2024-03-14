@@ -116,7 +116,7 @@ Resources:
           "States": {
             "ProcessDelivery": {
               "Type": "Wait",
-              "Seconds": 5,
+              "Seconds": 15,
               "Next": "NotifyDelivery"
             },
             "NotifyDelivery": {
