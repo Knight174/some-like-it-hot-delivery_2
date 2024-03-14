@@ -32,7 +32,7 @@ Resources:
             Method: POST
             RestApiId:
               Ref: AskDeliveryApi
-      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+      CodeUri: s3://some-like-it-hot-book/a7028cd4d29e37f2c2492f346244a69f
   GetDeliveries:
     Type: AWS::Serverless::Function
     Properties:
@@ -57,7 +57,7 @@ Resources:
             Method: GET
             RestApiId:
               Ref: AskDeliveryApi
-      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+      CodeUri: s3://some-like-it-hot-book/2ff10026a98fac44afa6dcb249bb9eb9
   GetDelivery:
     Type: AWS::Serverless::Function
     Properties:
@@ -82,7 +82,7 @@ Resources:
             Method: GET
             RestApiId:
               Ref: AskDeliveryApi
-      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+      CodeUri: s3://some-like-it-hot-book/bf2a4d291ee52be27b4c8980880e2bd2
   DeleteDelivery:
     Type: AWS::Serverless::Function
     Properties:
@@ -107,7 +107,7 @@ Resources:
             Method: DELETE
             RestApiId:
               Ref: AskDeliveryApi
-      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+      CodeUri: s3://some-like-it-hot-book/bf2a4d291ee52be27b4c8980880e2bd2
   DeliveriesTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
@@ -170,7 +170,7 @@ Resources:
           - dynamodb:UpdateItem
           - dynamodb:PutItem
           Resource: '*'
-      CodeUri: s3://some-like-it-hot-book/a5582491087f9023a80f7c56388d85e5
+      CodeUri: s3://some-like-it-hot-book/bf2a4d291ee52be27b4c8980880e2bd2
   AskDeliveryApi:
     Type: AWS::Serverless::Api
     Properties:

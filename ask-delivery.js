@@ -9,9 +9,7 @@ const VALIDATION_MESSAGE = `You haven't provided `;
 exports.handler = (event, context, cb) => {
   let deliveryRequest = JSON.parse(event.body);
 
-  let webhookUrl =
-    deliveryRequest.webhookUrl ||
-    'https://3w99bhuswd.execute-api.eu-central-1.amazonaws.com/latest/character';
+  let webhookUrl = deliveryRequest.webhookUrl;
   let pickupTime = deliveryRequest.pickupTime;
   let pickupAddress = deliveryRequest.pickupAddress;
   let deliveryAddress = deliveryRequest.deliveryAddress;
