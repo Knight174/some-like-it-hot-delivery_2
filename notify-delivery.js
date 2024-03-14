@@ -2,7 +2,7 @@ const rp = require('minimal-request-promise');
 const AWS = require('aws-sdk');
 const docClient = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = process.env.TABLE_NAME;
-const IN_PROGRESS_STATUS = 'IN-PROGRESS';
+const IN_PROGRESS_STATUS = '进行中';
 
 exports.handler = (event, context, cb) => {
   console.log('delivery from Step Functions received');
